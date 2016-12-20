@@ -1,0 +1,4 @@
+﻿  Stack.cpp
+c:\users\mxuor\documents\2016 summer\board games\checkers\checkers\stack.cpp(22): warning C4715: 'Stack::pop': not all control paths return a value
+  Checkers.vcxproj -> C:\Users\mxuor\Documents\2016 Summer\Board Games\Checkers\Debug\Checkers.exe
+  Checkers.vcxproj -> C:\Users\mxuor\Documents\2016 Summer\Board Games\Checkers\Debug\Checkers.pdb (Partial PDB)

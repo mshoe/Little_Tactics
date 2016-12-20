@@ -1,0 +1,833 @@
+#include "PlayerGame.h"
+#include <iostream>
+#include <string>
+
+#include <typeinfo>
+
+PlayerGame::PlayerGame() {
+	gameBoard = nullptr;
+	turn = 1;
+	firstMove = 0;
+	currentAction = 0;
+
+	currentMovementList = nullptr;
+	currentAttackList = nullptr;
+	renderer = new Renderer(this);
+}
+
+PlayerGame::PlayerGame(GameBoard *board) {
+	gameBoard = board;
+	turn = 1;
+	firstMove = 0;
+	currentAction = 0;
+
+	currentMovementList = nullptr;
+	currentAttackList = nullptr;
+	renderer = new Renderer(this);
+}
+
+int PlayerGame::getType() {
+	//returning the type (player or enemy) who gets to go this turn
+	if (turn % 2 == 0)
+		return 0;
+	else
+		return 1;
+}
+
+int PlayerGame::getOppType() {
+	if (turn % 2 == 0)
+		return 1;
+	else
+		return 0;
+}
+
+Vector3<int> * PlayerGame::getDirection(Piece * piece1, Piece * piece2)
+{
+	Vector3<int> *direction = 
+		new Vector3<int>(piece2->coordinates->x - piece1->coordinates->x,
+		piece2->coordinates->y - piece1->coordinates->y);
+	return direction;
+}
+
+void PlayerGame::movePiece(Piece *piece, Tile *tile) {
+	Tile *tile2 = selectTile(piece->coordinates);
+	tile2->changePiece(nullptr);
+	tile->changePiece(piece);
+	updateStats();
+}
+
+void PlayerGame::attackPiece(Piece *piece1, Piece *piece2) {
+	piece2->stats->HP -= piece1->stats->ATK;
+	char piece2Char = piece2->getChar();
+	char piece2newChar = 96;
+	if (piece2Char == 88)
+		piece2newChar = 120;
+	else if (piece2Char == 79)
+		piece2newChar = 111;
+	if (piece2->stats->HP == 1) {
+		piece2->changeChar(piece2newChar);
+		piece2->size /= 2;
+	}
+	//else if kill
+	else if (piece2->stats->HP <= 0) {
+		piece2->getTile()->changePiece(nullptr);
+		delPiece(piece2);
+	}
+	updateStats();
+}
+
+void PlayerGame::attackChain(Piece * piece1, List * chainList)
+{
+	Node *temp = chainList->start;
+	while (temp != nullptr) {
+		attackPiece(piece1, temp->piece);
+		temp = temp->next;
+	}
+}
+
+void PlayerGame::bump(Piece * piece1, Piece * piece2)
+{
+	List *lineList = makeLineList(piece1, piece2);
+	if (!isBlocked(piece1, lineList)) {
+		lineList->reverseList();
+		Node *temp = lineList->start;
+		while (temp != nullptr) {
+			//inevitably, I would need to go back to 4 if statements
+			//i could probably overload movePiece though to take the Vector *direction
+			//only possibly directions are [1,0], [-1,0], [0,1], [0,-1]
+			Vector3<int> *direction = getDirection(piece1, piece2);
+			if (direction->x == 1 && direction->y == 0) {//SOUTH
+				movePiece(temp->piece, temp->tile->getTileSouth());
+			}
+			else if (direction->x == -1 && direction->y == 0) {//NORTH
+				movePiece(temp->piece, temp->tile->getTileNorth());
+			}
+			else if (direction->x == 0 && direction->y == 1) {//EAST
+				movePiece(temp->piece, temp->tile->getTileEast());
+			}
+			else if (direction->x == 0 && direction->y == -1) {//WEST
+				movePiece(temp->piece, temp->tile->getTileWest());
+			}
+			temp = temp->next;
+		}
+	}
+	lineList->delList();
+}
+
+void PlayerGame::delPiece(Piece *piece) {
+	Tile *tile = gameBoard->getTile(piece->coordinates);
+	tile->changePiece(nullptr);
+	delete piece;
+}
+
+void PlayerGame::updateStats() {
+	List *pieceList0 = makePieceList(0);
+	List *pieceList1 = makePieceList(1);
+	updatePieceListStats(pieceList0);
+	updatePieceListStats(pieceList1);
+	pieceList0->delList(); pieceList1->delList();
+}
+
+void PlayerGame::updatePieceListStats(List *pieceList) {
+	Node *temp = pieceList->start;
+	Piece *piece;
+	while (temp != nullptr) {
+		piece = temp->piece;
+		List *chainList = makeChainList(piece);
+		if (chainList->size == 1) {
+			piece->stats->ATK = 1;
+			piece->stats->MOV = 2;
+		}
+		else if (chainList->size == 2) {
+				piece->stats->ATK = 2;
+				piece->stats->MOV = 2;
+		}
+		else if (chainList->size > 2) {
+				piece->stats->ATK = 2;
+				piece->stats->MOV = 4;
+		}
+		chainList->delList();
+		temp = temp->next;
+	}
+}
+
+Tile *PlayerGame::selectTile(Vector3<int> *coordinates) {
+	Tile**** board = gameBoard->getBoard();
+	return board[coordinates->z][coordinates->x][coordinates->y];
+}
+
+void PlayerGame::turnLoop() {
+	std::cout << std::endl << "TURN " << turn << std::endl << std::endl;
+	firstMove = 0;
+
+	glutPostRedisplay();
+	analyze();
+	firstAction();
+	if (checkWinner()) {
+		return;
+	}
+	glutPostRedisplay();
+	analyze();
+	secondAction();
+	turn += 1;
+}
+
+void PlayerGame::analyze() {
+	std::cout << std::endl;
+	List *playerList = makePieceList(1);
+	List *enemyList = makePieceList(0);
+	std::cout << "Player's Pieces: " << std::endl;
+	playerList->printPieces(); playerList->delList();
+	std::cout << "Enemey's Pieces: " << std::endl;
+	enemyList->printPieces(); enemyList->delList();
+	std::cout << std::endl;
+}
+
+Piece *PlayerGame::selectPiece() {
+	Vector3<int> *coordinates = new Vector3<int>;
+	int x, y;
+	while (true) {
+		std::cout << "Select a piece (x): ";
+		std::cin >> x;
+		std::cout << std::endl;
+		std::cout << "Select a piece (y): ";
+		std::cin >> y;
+		std::cout << std::endl;
+		
+		coordinates->changeVector(x, y);
+		if (correctStart(coordinates)) {
+			Piece *returnPiece = gameBoard->getTile(coordinates)->getPiece();
+			delete coordinates;
+			return returnPiece;
+		}
+		else {
+			std::cout << "Invalid selection. Please try again." << std::endl;
+		}
+	}
+}
+
+void PlayerGame::firstAction() {
+
+	// firstMove determines the second move
+	Piece *piece;
+	bool correctSelection = false;
+	bool corStartMov = false; bool corStartAtk = false;
+	bool availableMov = availableMoves(); bool availableAtk = availableAttacks();
+	
+	if (availableMov && availableAtk) {
+		while (!correctSelection) {
+			piece = selectPiece();
+			corStartMov = correctStartMove(piece);
+			corStartAtk = correctStartAttack(piece);
+			if (corStartMov && corStartAtk) {
+				attackOrMove(piece); // value of firstMove set in this function
+				correctSelection = true;
+			}
+			else if (corStartMov) {
+				moveSelection(piece);
+				firstMove = 1;
+				correctSelection = true;
+			}
+			else if (corStartAtk) {
+				attackSelection(piece);
+				firstMove = 2;
+				correctSelection = true;
+			}
+			else {
+				std::cout << "Selected piece has no possible actions. Please try again." << std::endl;
+			}
+		}
+	}
+	else if (availableMov) {
+		while (!correctSelection) {
+			piece = selectPiece();
+			corStartMov = correctStartMove(piece);
+			if (corStartMov) {
+				moveSelection(piece);
+				firstMove = 1;
+				correctSelection = true;
+			}
+			else {
+				std::cout << "Selected piece has no possible actions. Please try again." << std::endl;
+			}
+		}
+	}
+	else if (availableAtk) {
+		while (!correctSelection) {
+			piece = selectPiece();
+			corStartAtk = correctStartAttack(piece);
+			if (corStartAtk) {
+				attackSelection(piece);
+				firstMove = 1;
+				correctSelection = true;
+			}
+			else {
+				std::cout << "Selected piece has no possible actions. Please try again." << std::endl;
+			}
+		}
+	}
+	//impossible for no first actions
+}
+
+void PlayerGame::secondAction() {
+	Piece *piece;
+	bool correctSelection = false;
+	bool corStartMov = false; bool corStartAtk = false;
+	bool availableMov = false; bool availableAtk = false;
+	std::string firstMoveStr = "";
+	std::string secondMoveStr = "";
+
+	if (firstMove == 1) {
+		availableAtk = availableAttacks();
+		firstMoveStr = "MOVE";
+		secondMoveStr = "ATTACK";
+	}
+	else if (firstMove == 2) {
+		availableMov = availableMoves();
+		firstMoveStr = "ATTACK";
+		secondMoveStr = "MOVE";
+	}
+	std::cout << "First action: " << firstMoveStr << "." << std::endl;
+	std::cout << "Second action will be: " << secondMoveStr << " or WAIT." << std::endl;
+	if (availableMov || availableAtk) {
+		//gameBoard->printBoard();
+		glutPostRedisplay();
+		while (!correctSelection) {
+			piece = selectPiece();
+			corStartMov = correctStartMove(piece);
+			corStartAtk = correctStartAttack(piece);
+			if (firstMove == 1 && corStartAtk) {
+				attackCheckAfter(piece);
+				correctSelection = true;
+			}
+			else if (firstMove == 2 && corStartMov) {
+				moveCheckAfter(piece);
+				correctSelection = true;
+			}
+			else if (corStartMov || corStartAtk) {
+				std::cout << "Selected piece can only " << secondMoveStr << " since the first move was "
+					<< firstMoveStr << ". Please try again." << std::endl;
+			}
+			else {
+				std::cout << "Selected piece has no possible actions. Please try again." << std::endl;
+			}
+		}
+	}
+	else {
+		std::cout << "No possible second actions." << std::endl;
+	}
+}
+
+void PlayerGame::attackOrMove(Piece *piece) {
+	int selection = 0;
+	while (selection != 1 && selection != 2) {
+		std::cout << "Choose an action: (1) Move, (2) Attack : ";
+		std::cin >> selection;
+		std::cout << std::endl;
+
+		if (selection == 1) {
+			moveSelection(piece);
+			firstMove = 1;
+		}
+		else if (selection == 2) {
+			attackSelection(piece);
+			firstMove = 2;
+		}
+		else
+			std::cout << "Invalid selection. Please try again." << std::endl;
+	}
+}
+
+void PlayerGame::attackCheckAfter(Piece * piece)
+{
+	int selectionAfter = 0;
+	//gameBoard->printBoard();
+	glutPostRedisplay();
+	while (selectionAfter != 2 && selectionAfter != 3) {
+		std::cout << "Action: (2) Attack, (3) End Turn : ";
+		std::cin >> selectionAfter;
+		std::cout << std::endl;
+
+		if (selectionAfter == 2 && correctStartAttack(piece))
+			attackSelection(piece);
+		else if (selectionAfter == 3) {}
+		else {
+			selectionAfter = 0;
+			std::cout << "That is an invalid selection. Please try again." << std::endl;
+		}
+	}
+}
+
+void PlayerGame::moveCheckAfter(Piece * piece)
+{
+	int selectionAfter = 0;
+	//gameBoard->printBoard();
+	glutPostRedisplay();
+	while (selectionAfter != 1 && selectionAfter != 3) {
+		std::cout << "Action: (1) Move, (3) End Turn : ";
+		std::cin >> selectionAfter;
+		std::cout << std::endl;
+
+		if (selectionAfter == 1 && correctStartMove(piece))
+			moveSelection(piece);
+		else if (selectionAfter == 3) {}
+		else {
+			selectionAfter = 0;
+			std::cout << "That is an invalid selection. Please try again." << std::endl;
+		}
+	}
+}
+
+void PlayerGame::moveSelection(Piece *piece) {
+	Vector3<int> *coordinates = new Vector3<int>;
+	int x, y;
+	List *movList = makeMovList(piece);
+	currentMovementList = movList;
+	//gameBoard->printBoard(movList);
+	glutPostRedisplay();
+	bool corEnd = false;
+	while (!corEnd) {
+		std::cout << "Move to (x): ";
+		std::cin >> x;
+		std::cout << std::endl;
+		std::cout << "Move to (y): ";
+		std::cin >> y;
+		std::cout << std::endl;
+
+		coordinates->changeVector(x, y);
+		if (correctEnd(coordinates, movList))
+			corEnd = true;
+		else
+			std::cout << "That is an invalid move. Please try again." << std::endl;
+	}
+	movePiece(piece, gameBoard->getTile(coordinates));
+	currentMovementList = nullptr;
+	movList->delList();
+}
+
+void PlayerGame::attackSelection(Piece *piece) {
+	Vector3<int> *coordinates = new Vector3<int>;
+	int x, y;
+	List *atkList = makeAtkList(piece);
+	currentAttackList = atkList;
+	glutPostRedisplay();
+	bool corAtk = false;
+	while (!corAtk) {
+		std::cout << "Attack piece (x): ";
+		std::cin >> x;
+		std::cout << std::endl;
+		std::cout << "Attack piece (y): ";
+		std::cin >> y;
+		std::cout << std::endl;
+
+		coordinates->changeVector(x, y);
+		if (correctAtk(coordinates, atkList, piece))
+			corAtk = true;
+		else
+			std::cout << "That is an invalid attack. Please try again.";
+	}
+	Piece *piece2 = gameBoard->getTile(coordinates)->getPiece();
+	//First we bump, then we chain attack
+	bump(piece, piece2);
+	List *chainList = makeChainList(piece2);
+	attackChain(piece, chainList);
+	chainList->delList();
+	currentAttackList = nullptr;
+	atkList->delList();
+}
+
+bool PlayerGame::correctStart(Vector3<int> *coordinates) {
+	Piece *piece = gameBoard->getTile(coordinates)->getPiece();
+	if (piece == nullptr)
+		return false;
+	else
+		return correctTurn(piece);
+}
+
+bool PlayerGame::correctStartAttack(Piece *piece)
+{
+	List *atkList = makeAtkList(piece);
+	if (atkList->start == nullptr) {
+		atkList->delList();
+		if (firstMove != 2) {
+			piece->print();
+			std::cout << " has no available attacks." << std::endl;
+		}
+		return false;
+	}
+	else {
+		atkList->delList();
+		return true;
+	}
+}
+
+bool PlayerGame::correctStartMove(Piece *piece)
+{
+	List *movList = makeMovList(piece);
+	if (movList->start == nullptr) {
+		if (firstMove != 1) {
+			piece->print();
+			std::cout << " has no availabe movements." << std::endl;
+		}
+		movList->delList();
+		return false;
+	}
+	else {
+		movList->delList();
+		return true;
+	}
+}
+
+bool PlayerGame::correctEnd(Vector3<int> *coordinates, List *movList) {
+	if (!movList->search(coordinates))
+		return false;
+	Piece *piece = gameBoard->getTile(coordinates)->getPiece();
+	if (piece == nullptr)
+		return true;
+	else
+		return false;
+}
+
+bool PlayerGame::correctAtk(Vector3<int> *coordinates, List *atkList, Piece *piece) {
+	char pieceChar = piece->getChar();
+	if (atkList->search(coordinates)) {
+		if (gameBoard->getTile(coordinates)->getPiece()->getChar() != pieceChar) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool PlayerGame::correctTurn(Piece *piece) {
+	if (turn % 2 == 0) {
+		if (piece->type == 1)
+			return false;
+		else if (piece->type == 0)
+			return true;
+	}
+	else {
+		if (piece->type == 1)
+			return true;
+		if (piece->type == 0)
+			return false;
+	}
+	std::cout << "error" << std::endl;//edge case?
+	return false;
+}
+
+List *PlayerGame::makeMovList(Piece *piece) {
+	//Use of queues for Breadth-First Traversal
+	List *movList = new List;
+	Tile *tile = piece->getTile();
+	int MOV = piece->stats->MOV;
+	int movTemp = 0;
+	Queue *Q = new Queue;
+	//no need to movList->ins(new Node(tile)); because algorithm will check for tiles with pieces
+	Q->enQueue(new Node(tile->getTileNorth(), MOV));
+	Q->enQueue(new Node(tile->getTileSouth(), MOV));
+	Q->enQueue(new Node(tile->getTileWest(), MOV));
+	Q->enQueue(new Node(tile->getTileEast(), MOV));
+	while (Q->size != 0) {
+		Node *temp = Q->deQueue();
+		tile = temp->tile;
+		movTemp = temp->MOV;
+		if (tile->getPiece() == nullptr) {
+			if (!movList->search(tile)) {
+				movList->ins(new Node(tile));
+				Q->enQueue(new Node(tile->getTileNorth(), movTemp - 1));
+				Q->enQueue(new Node(tile->getTileSouth(), movTemp - 1));
+				Q->enQueue(new Node(tile->getTileWest(), movTemp - 1));
+				Q->enQueue(new Node(tile->getTileEast(), movTemp - 1));
+			}
+		}
+	}
+	return movList;
+}
+
+List *PlayerGame::makeAjcAllyList(Piece *piece) {
+	//Make adjacent ally list
+	List *ajcList = new List;
+	Tile *tile2;
+	Tile *pieceTile = piece->getTile();
+	int pieceType = piece->type;
+	tile2 = pieceTile->getTileNorth();
+	addPieceAjcList(tile2, ajcList, pieceType);
+	tile2 = pieceTile->getTileSouth();
+	addPieceAjcList(tile2, ajcList, pieceType);
+	tile2 = pieceTile->getTileWest();
+	addPieceAjcList(tile2, ajcList, pieceType);	
+	tile2 = pieceTile->getTileEast();
+	addPieceAjcList(tile2, ajcList, pieceType);
+	return ajcList;
+}
+
+void PlayerGame::addPieceAjcList(Tile * tile, List * ajcList, int type)
+{
+	Piece *piece;
+	if (tile != nullptr) {
+		piece = tile->getPiece();
+		if (piece != nullptr) {
+			if (piece->type == type) {
+				ajcList->ins(new Node(piece));
+			}
+		}
+	}
+}
+
+List *PlayerGame::makeAtkList(Piece *piece) {
+	int x = piece->coordinates->x;
+	int y = piece->coordinates->y;
+	List *atkList = new List;
+	int pieceType = piece->type;
+	Tile *pieceTile;
+	Piece *pieceAttack;
+	pieceTile = piece->getTile();
+	//could make this smaller
+	if (x != 0) {
+		pieceAttack = pieceTile->getTileNorth()->getPiece();
+		if (pieceAttack != nullptr) {
+			if (pieceAttack->type != pieceType)
+				atkList->ins(new Node(pieceAttack));
+		}
+	}
+	if (x != gameBoard->ROWS - 1) {
+		pieceAttack = pieceTile->getTileSouth()->getPiece();
+		if (pieceAttack != nullptr) {
+			if (pieceAttack->type != pieceType)
+				atkList->ins(new Node(pieceAttack));
+		}
+	}
+	if (y != 0) {
+		pieceAttack = pieceTile->getTileWest()->getPiece();
+		if (pieceAttack != nullptr) {
+			if (pieceAttack->type != pieceType)
+				atkList->ins(new Node(pieceAttack));
+		}
+	}
+	if (y != gameBoard->COLS - 1) {
+		pieceAttack = pieceTile->getTileEast()->getPiece();
+		if (pieceAttack != nullptr) {
+			if (pieceAttack->type != pieceType)
+				atkList->ins(new Node(pieceAttack));
+		}
+	}
+	return atkList;
+}
+
+List *PlayerGame::makePieceList(int type) {
+	List *pieceList = new List;
+	Piece *piece;
+	int i, j;
+	int selection = 0;
+	//making the lists
+	for (i = 0; i < gameBoard->ROWS; i++) {
+		for (j = 0; j < gameBoard->COLS; j++) {
+			Vector3<int> *coordinates = new Vector3<int>(i, j);
+			if (gameBoard->getTile(coordinates)->getPiece() != nullptr) {
+				piece = gameBoard->getTile(coordinates)->getPiece();
+				if (piece->type == type)
+					pieceList->ins(new Node(piece));
+			}
+			delete coordinates;
+		}
+	}
+	return pieceList;
+}
+
+List * PlayerGame::makeChainList(Piece * piece)
+{
+	List *chainList = new List;
+	Tile *tile = piece->getTile();
+	int pieceType = piece->type;
+	addChainList(chainList, tile, pieceType);
+	return chainList;
+}
+
+void PlayerGame::addChainList(List *chainList, Tile *tile, int pieceType) {
+	if (tile != nullptr) {
+		Piece *piece = tile->getPiece();
+		if (piece != nullptr) {
+			if (piece->type == pieceType) {
+				if (!chainList->search(piece)) {
+					chainList->ins(new Node(piece));
+					addChainList(chainList, tile->getTileNorth(), pieceType);
+					addChainList(chainList, tile->getTileSouth(), pieceType);
+					addChainList(chainList, tile->getTileWest(), pieceType);
+					addChainList(chainList, tile->getTileEast(), pieceType);
+				}
+			}
+		}
+	}
+}
+
+List * PlayerGame::makeLineList(Piece * pieceAttacker, Piece * pieceDefender)
+{
+	//No need for recursion if it's just a straight line
+	List *lineList = new List;
+	//One of these will be zero, one of these will be +/- 1
+	int xDirection = pieceDefender->coordinates->x - pieceAttacker->coordinates->x;
+	int yDirection = pieceDefender->coordinates->y - pieceAttacker->coordinates->y;
+
+	//int pos[2] = { pieceDefender->pos[0], pieceDefender->pos[1] };
+	Vector3<int> *coordinates = new Vector3<int>(pieceDefender->coordinates->x, pieceDefender->coordinates->y);
+	while (coordinates->x >= 0 && coordinates->x < gameBoard->ROWS && coordinates->y >= 0 && coordinates->y < gameBoard->COLS) {
+		if (gameBoard->getTile(coordinates)->getPiece() == nullptr) {
+			break;
+		}
+		lineList->ins(new Node(gameBoard->getTile(coordinates)->getPiece()));
+		coordinates->changeVector(coordinates->x + xDirection, coordinates->y + yDirection);
+	}
+	delete coordinates;
+	return lineList;
+}
+
+List *PlayerGame::makeAvailableMovList(List *pieceList) {
+	Node *temp = pieceList->start;
+	List *list;
+	List *availableList = new List;
+	while (temp != nullptr) {
+		list = makeMovList(temp->piece);
+		if (list->start != nullptr) {
+			availableList->ins(new Node(temp->piece));
+		}
+		list->delList();
+		temp = temp->next;
+	}
+	return availableList;
+}
+
+List *PlayerGame::makeAvailableAtkList(List *pieceList) {
+	Node *temp = pieceList->start;
+	List *list;
+	List *availableList = new List;
+	while (temp != nullptr) {
+		list = makeAtkList(temp->piece);
+		if (list->start != nullptr) {
+			availableList->ins(new Node(temp->piece));
+		}
+		list->delList();
+		temp = temp->next;
+	}
+	return availableList;
+}
+
+bool PlayerGame::isLose(int type) {
+	List *pieceList = makePieceList(type);
+	if (pieceList->start == nullptr) {
+		pieceList->delList();
+		return true;
+	}
+	pieceList->delList();
+	return false;
+}
+
+bool PlayerGame::availableMoves()
+{
+	List *pieceList = makePieceList(getType());
+	List *availableMovList = makeAvailableMovList(pieceList);
+	if (availableMovList->start == nullptr) {
+		std::cout << "No available moves." << std::endl;
+		availableMovList->delList();
+		pieceList->delList();
+		return false;
+	}
+	else {
+		availableMovList->delList();
+		pieceList->delList();
+		return true;
+	}
+}
+
+bool PlayerGame::availableAttacks()
+{
+	List *pieceList = makePieceList(getType());
+	List *availableAtkList = makeAvailableAtkList(pieceList);
+	if (availableAtkList->start == nullptr) {
+		std::cout << "No available attacks." << std::endl;
+		availableAtkList->delList();
+		pieceList->delList();
+		return false;
+	}
+	else {
+		availableAtkList->delList();
+		pieceList->delList();
+		return true;
+	}
+}
+
+bool PlayerGame::isBlocked(Piece *pieceAttacker, List * lineList)
+{
+	Vector3<int> *direction = getDirection(pieceAttacker, lineList->start->piece);
+	Node *end = lineList->getEnd();
+	Tile *endTile = getTile(end->tile, direction);
+	if (endTile != nullptr) {
+		if (endTile->getPiece() == nullptr) {
+			return false;
+		}
+	}
+	return true;
+}
+
+Tile * PlayerGame::getTile(Tile * tile, Vector3<int> * direction)
+{
+	if (direction->x == -1 && direction->y == 0)
+		return tile->getTileNorth();
+	else if (direction->x == 1 && direction->y == 0)
+		return tile->getTileSouth();
+	else if (direction->x == 0 && direction->y == -1)
+		return tile->getTileWest();
+	else if (direction->x == 0 && direction->y == 1)
+		return tile->getTileEast();
+	else
+		return nullptr;
+}
+
+bool PlayerGame::checkWinner() {
+	bool xLose = isLose(getType());
+	bool oLose = isLose(getOppType());
+	if (xLose && oLose) {
+		std::cout << "Draw." << std::endl;
+		return true;
+	}
+	else if (xLose) {
+		std::cout << "O Wins." << std::endl;
+		return true;
+	}
+	else if (oLose) {
+		std::cout << "X Wins." << std::endl;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+//Display * PlayerGame::getDisplay()
+//{
+//	//return display;
+//}
+
+GameBoard * PlayerGame::getBoard()
+{
+	return gameBoard;
+}
+
+Renderer * PlayerGame::getRenderer()
+{
+	return renderer;
+}
+
+void PlayerGame::realTimeTurnLoop()
+{
+	switch (currentAction) {
+	case TURN_START:
+		std::cout << std::endl << "TURN " << turn << std::endl << std::endl;
+		firstMove = 0;
+		currentAction = 1;
+		glutPostRedisplay();
+		break;
+	case FIRST_ACTION:
+		analyze();
+		firstAction();
+	}
+}

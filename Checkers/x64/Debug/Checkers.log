@@ -1,0 +1,65 @@
+﻿  UIBackend.cpp
+  Tile.cpp
+  Stats.cpp
+  Renderer.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(121): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(122): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(123): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(138): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(139): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(140): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(157): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(158): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(159): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(176): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(177): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(178): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\renderer.cpp(1480): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  PlayerGame.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(368): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(369): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(415): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(564): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(565): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(642): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(648): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(649): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(650): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(672): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(673): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\playergame.cpp(674): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  Piece.cpp
+  Nodes.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\nodes.cpp(30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\nodes.cpp(51): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\nodes.cpp(66): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\nodes.cpp(79): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  Math.cpp
+  main.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\main.cpp(43): warning C4101: 'values': unreferenced local variable
+  KeyInput.cpp
+  GameBoard.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(183): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(188): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(193): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(198): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(203): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(208): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\gameboard.cpp(213): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  CGameState.cpp
+  CGameEngine.cpp
+  Animation.cpp
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(137): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(138): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(139): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(177): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(183): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(189): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(195): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(201): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(203): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+c:\users\mxuor\onedrive\documents\engsci\y1\summer\board games\little tactics\checkers\animation.cpp(226): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+  AI.cpp
+  Generating Code...
+  Checkers.vcxproj -> C:\Users\mxuor\OneDrive\Documents\Engsci\Y1\SUMMER\Board Games\Little Tactics\x64\Debug\Checkers.exe
+  Checkers.vcxproj -> C:\Users\mxuor\OneDrive\Documents\Engsci\Y1\SUMMER\Board Games\Little Tactics\x64\Debug\Checkers.pdb (Partial PDB)
