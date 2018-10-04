@@ -1,5 +1,5 @@
 # Little-Tactics
-link: https://mshoe.github.io/LittleTactics
+info-link: https://mshoe.github.io/LittleTactics
 
 video: https://www.youtube.com/watch?v=JMr3EyeEGjQ
 
